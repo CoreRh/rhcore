@@ -174,6 +174,7 @@ export default function RequestsPage() {
       {
         accessorKey: "FUNCIONARIO",
         header: "Funcionário",
+        meta: { exportValue: (row) => row.FUNCIONARIO?.NOME ?? "" },
         cell: ({ row }) => row.original.FUNCIONARIO?.NOME || "-",
       },
       {
