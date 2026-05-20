@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowData,
   SortingState,
   VisibilityState,
   flexRender,
@@ -13,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -61,6 +63,13 @@ interface DataTableProps<TData, TValue> {
   filters?: FilterConfig[];
   exportFilename?: string;
   emptyMessage?: string;
+}
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    exportValue?: (row: TData) => string;
+  }
 }
 
 export function DataTable<TData, TValue>({
@@ -112,7 +121,9 @@ export function DataTable<TData, TValue>({
 
     const rows = table.getFilteredRowModel().rows.map((row) =>
       exportableCols.map((col) => {
-        const val = row.getValue(col.id);
+        const val = col.columnDef.meta?.exportValue
+          ? col.columnDef.meta.exportValue(row.original)
+          : row.getValue(col.id);
         return val == null ? "" : String(val);
       }),
     );

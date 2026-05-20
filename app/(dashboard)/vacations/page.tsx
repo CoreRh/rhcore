@@ -136,6 +136,7 @@ export default function VacationsPage() {
     {
       accessorKey: "FUNCIONARIO",
       header: "Funcionário",
+      meta: { exportValue: (row) => row.FUNCIONARIO?.NOME ?? "" },
       cell: ({ row }) => row.original.FUNCIONARIO?.NOME || "-",
     },
     {

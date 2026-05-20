@@ -131,6 +131,7 @@ export default function BenefitsPage() {
     {
       accessorKey: "FUNCIONARIO",
       header: "Funcionário",
+      meta: { exportValue: (row) => row.FUNCIONARIO?.NOME ?? "" },
       cell: ({ row }) => row.original.FUNCIONARIO?.NOME || "—",
     },
     {
