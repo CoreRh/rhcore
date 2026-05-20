@@ -1,6 +1,6 @@
 import type { AppPermission, UserRole } from "./types";
 
-interface RouteRule {
+export interface RouteRule {
   roles: UserRole[];
   permissions?: AppPermission[];
 }
@@ -18,13 +18,16 @@ export const ROUTE_PERMISSIONS: Record<string, RouteRule> = {
   "/payroll": { roles: ["ADMIN", "MANAGER"], permissions: ["MANAGE_PAYROLL"] },
   "/users": { roles: ["ADMIN"] },
   "/profile": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
-  "/reports": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/reports": {
+    roles: ["ADMIN", "MANAGER", "EMPLOYEE"],
+    permissions: ["VIEW_REPORTS"],
+  },
 };
 
 export function hasRouteAccess(
   role: UserRole | null,
   pathname: string,
-  permissions?: string[],
+  permissions?: AppPermission[],
 ): boolean {
   if (!role) return false;
   const match = Object.keys(ROUTE_PERMISSIONS)
