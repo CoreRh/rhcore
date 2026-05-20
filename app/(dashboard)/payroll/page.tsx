@@ -170,23 +170,33 @@ export default function PayrollPage() {
     {
       accessorKey: "FUNCIONARIO",
       header: "Funcionário",
+      meta: {
+        exportValue: (row) =>
+          `${row.FUNCIONARIO.NOME} (${row.FUNCIONARIO.MATRICULA})`,
+      },
       cell: ({ row }) =>
         `${row.original.FUNCIONARIO.NOME} (${row.original.FUNCIONARIO.MATRICULA})`,
     },
     {
       accessorKey: "MES_REFERENCIA",
       header: "Período",
+      meta: {
+        exportValue: (row) =>
+          `${MESES[row.MES_REFERENCIA - 1]}/${row.ANO_REFERENCIA}`,
+      },
       cell: ({ row }) =>
         `${MESES[row.original.MES_REFERENCIA - 1]}/${row.original.ANO_REFERENCIA}`,
     },
     {
       accessorKey: "SALARIO_BASE",
       header: "Salário Base",
+      meta: { exportValue: (row) => formatCurrency(row.SALARIO_BASE) },
       cell: ({ row }) => formatCurrency(row.original.SALARIO_BASE),
     },
     {
       accessorKey: "SALARIO_LIQUIDO",
       header: "Salário Líquido",
+      meta: { exportValue: (row) => formatCurrency(row.SALARIO_LIQUIDO) },
       cell: ({ row }) => formatCurrency(row.original.SALARIO_LIQUIDO),
     },
     {
