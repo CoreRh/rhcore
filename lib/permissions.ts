@@ -1,16 +1,24 @@
-import type { UserRole } from "./types";
+import type { AppPermission, UserRole } from "./types";
 
-export const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
-  "/": ["ADMIN", "MANAGER", "EMPLOYEE"],
-  "/employees": ["ADMIN", "MANAGER"],
-  "/departments": ["ADMIN", "MANAGER"],
-  "/positions": ["ADMIN", "MANAGER", "EMPLOYEE"],
-  "/vacations": ["ADMIN", "MANAGER", "EMPLOYEE"],
-  "/requests": ["ADMIN", "MANAGER", "EMPLOYEE"],
-  "/payroll": ["ADMIN", "MANAGER"],
-  "/users": ["ADMIN"],
-  "/profile": ["ADMIN", "MANAGER", "EMPLOYEE"],
-  "/reports": ["ADMIN", "MANAGER", "EMPLOYEE"],
+interface RouteRule {
+  roles: UserRole[];
+  permissions?: AppPermission[];
+}
+
+export const ROUTE_PERMISSIONS: Record<string, RouteRule> = {
+  "/": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/employees": {
+    roles: ["ADMIN", "MANAGER"],
+    permissions: ["VIEW_ALL_EMPLOYEES"],
+  },
+  "/departments": { roles: ["ADMIN", "MANAGER"] },
+  "/positions": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/vacations": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/requests": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/payroll": { roles: ["ADMIN", "MANAGER"], permissions: ["MANAGE_PAYROLL"] },
+  "/users": { roles: ["ADMIN"] },
+  "/profile": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  "/reports": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
 };
 
 export function hasRouteAccess(
@@ -25,8 +33,8 @@ export function hasRouteAccess(
     )
     .sort((a, b) => b.length - a.length)[0];
   if (!match) return true;
-  if (ROUTE_PERMISSIONS[match].includes(role)) return true;
-  if (match === "/employees" && permissions?.includes("VIEW_ALL_EMPLOYEES"))
-    return true;
+  const rule = ROUTE_PERMISSIONS[match];
+  if (rule.roles.includes(role)) return true;
+  if (rule.permissions?.some((p) => permissions?.includes(p))) return true;
   return false;
 }
