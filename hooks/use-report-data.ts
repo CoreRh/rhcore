@@ -124,10 +124,8 @@ export function useReportData({ enabled = true }: { enabled?: boolean } = {}) {
     [departments, employees],
   );
 
-  const pendingVacations = useMemo(
-    () => vacations.filter((v) => v.STATUS_FERIAS === "PENDENTE").length,
-    [vacations],
-  );
+  const pendingVacations =
+    vacationsByStatus.find((s) => s.name === "Pendente")?.total ?? 0;
 
   const pendingRequests = useMemo(
     () => requests.filter((r) => r.STATUS === "PENDENTE").length,

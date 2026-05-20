@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   BarChart,
@@ -38,6 +39,8 @@ export default function ReportsPage() {
     pendingRequests,
   } = useReportData({ enabled: canView });
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (!authLoading && !hasAppPermission("VIEW_REPORTS")) router.push("/");
   }, [authLoading, hasAppPermission, router]);
@@ -50,13 +53,15 @@ export default function ReportsPage() {
           description="Visão analítica dos dados do Sistema"
         />
         <div className="grid gap-4 mt-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-xl" />
+          {["kpi", "chart-1", "chart-2"].map((id) => (
+            <Skeleton key={id} className="h-48 w-full rounded-xl" />
           ))}
         </div>
       </div>
     );
   }
+
+  if (!canView) return null;
 
   if (hasError) {
     return (
@@ -68,6 +73,12 @@ export default function ReportsPage() {
         <p className="text-sm text-destructive mt-4">
           Erro ao carregar os dados. Tente novamente mais tarde.
         </p>
+        <button
+          onClick={() => queryClient.invalidateQueries()}
+          className="mt-2 text-sm underline"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
@@ -150,7 +161,10 @@ export default function ReportsPage() {
                 Sem dados no período
               </p>
             ) : (
-              <div role="img" aria-label="Gráfico de férias por status">
+              <div
+                role="img"
+                aria-label={`Gráfico de férias por status: ${vacationsByStatus.map((s) => `${s.name} ${s.total}`).join(", ")}`}
+              >
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={vacationsByStatus}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -184,7 +198,10 @@ export default function ReportsPage() {
                 Sem dados no período
               </p>
             ) : (
-              <div role="img" aria-label="Gráfico de solicitações por tipo">
+              <div
+                role="img"
+                aria-label={`Gráfico de solicitações por tipo: ${requestsByType.map((s) => `${s.name} ${s.total}`).join(", ")}`}
+              >
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={requestsByType}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -221,7 +238,7 @@ export default function ReportsPage() {
           ) : (
             <div
               role="img"
-              aria-label="Gráfico de funcionários por departamento"
+              aria-label={`Gráfico de funcionários por departamento: ${employeesByDept.map((d) => `${d.fullName} ${d.total}`).join(", ")}`}
             >
               <ResponsiveContainer
                 width="100%"
