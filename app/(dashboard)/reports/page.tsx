@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import {
   BarChart,
   Bar,
@@ -16,15 +14,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
-import { useAuth } from "@/contexts/auth-context";
 import { useReportData } from "@/hooks/use-report-data";
 
 const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function ReportsPage() {
-  const { hasAppPermission, isLoading: authLoading } = useAuth();
-  const canView = !authLoading && hasAppPermission("VIEW_REPORTS");
-  const router = useRouter();
   const {
     isLoading,
     hasError,
@@ -37,31 +31,9 @@ export default function ReportsPage() {
     employeesByDept,
     pendingVacations,
     pendingRequests,
-  } = useReportData({ enabled: canView });
+  } = useReportData();
 
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!authLoading && !hasAppPermission("VIEW_REPORTS")) router.push("/");
-  }, [authLoading, hasAppPermission, router]);
-
-  if (authLoading) {
-    return (
-      <div>
-        <PageHeader
-          title="Relatórios"
-          description="Visão analítica dos dados do Sistema"
-        />
-        <div className="grid gap-4 mt-4">
-          {["kpi", "chart-1", "chart-2"].map((id) => (
-            <Skeleton key={id} className="h-48 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!canView) return null;
 
   if (hasError) {
     return (

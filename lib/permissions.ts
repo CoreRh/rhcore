@@ -19,7 +19,7 @@ export const ROUTE_PERMISSIONS: Record<string, RouteRule> = {
   "/users": { roles: ["ADMIN"] },
   "/profile": { roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   "/reports": {
-    roles: ["ADMIN", "MANAGER", "EMPLOYEE"],
+    roles: ["ADMIN", "MANAGER"],
     permissions: ["VIEW_REPORTS"],
   },
 };
@@ -38,6 +38,7 @@ export function hasRouteAccess(
   if (!match) return true;
   const rule = ROUTE_PERMISSIONS[match];
   if (rule.roles.includes(role)) return true;
+  // permissions ampliam o acesso: qualquer role com uma das permissões listadas é autorizado
   if (rule.permissions?.some((p) => permissions?.includes(p))) return true;
   return false;
 }
