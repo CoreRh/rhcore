@@ -22,7 +22,7 @@ const REQUEST_LABELS: Record<string, string> = {
   OUTROS: "Outros",
 };
 
-export function useReportData() {
+export function useReportData({ enabled = true }: { enabled?: boolean } = {}) {
   const {
     data: empData,
     isLoading: empLoading,
@@ -31,6 +31,7 @@ export function useReportData() {
     queryKey: ["employees"],
     queryFn: () => employeesApi.getAll(),
     staleTime: 60_000,
+    enabled,
   });
 
   const {
@@ -41,6 +42,7 @@ export function useReportData() {
     queryKey: ["vacations"],
     queryFn: () => vacationsApi.getAll(),
     staleTime: 60_000,
+    enabled,
   });
 
   const {
@@ -51,6 +53,7 @@ export function useReportData() {
     queryKey: ["requests"],
     queryFn: () => requestsApi.getAll(),
     staleTime: 60_000,
+    enabled,
   });
 
   const {
@@ -61,6 +64,7 @@ export function useReportData() {
     queryKey: ["departments"],
     queryFn: () => departmentsApi.getAll(),
     staleTime: 60_000,
+    enabled,
   });
 
   const isLoading = empLoading || vacLoading || reqLoading || deptLoading;
@@ -71,10 +75,18 @@ export function useReportData() {
   const requests = reqData?.data ?? [];
   const departments = deptData?.data ?? [];
 
-  const activeEmployees = employees.filter((e) => e.STATUS === "ATIVO").length;
-  const inactiveEmployees = employees.filter(
-    (e) => e.STATUS === "INATIVO",
-  ).length;
+  const { activeEmployees, inactiveEmployees } = useMemo(
+    () =>
+      employees.reduce(
+        (acc, e) => {
+          if (e.STATUS === "ATIVO") acc.activeEmployees++;
+          else if (e.STATUS === "INATIVO") acc.inactiveEmployees++;
+          return acc;
+        },
+        { activeEmployees: 0, inactiveEmployees: 0 },
+      ),
+    [employees],
+  );
 
   const vacationsByStatus = useMemo(
     () =>
@@ -112,6 +124,16 @@ export function useReportData() {
     [departments, employees],
   );
 
+  const pendingVacations = useMemo(
+    () => vacations.filter((v) => v.STATUS_FERIAS === "PENDENTE").length,
+    [vacations],
+  );
+
+  const pendingRequests = useMemo(
+    () => requests.filter((r) => r.STATUS === "PENDENTE").length,
+    [requests],
+  );
+
   return {
     isLoading,
     hasError,
@@ -122,5 +144,7 @@ export function useReportData() {
     vacationsByStatus,
     requestsByType,
     employeesByDept,
+    pendingVacations,
+    pendingRequests,
   };
 }

@@ -22,6 +22,7 @@ const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function ReportsPage() {
   const { hasAppPermission, isLoading: authLoading } = useAuth();
+  const canView = !authLoading && hasAppPermission("VIEW_REPORTS");
   const router = useRouter();
   const {
     isLoading,
@@ -33,13 +34,29 @@ export default function ReportsPage() {
     vacationsByStatus,
     requestsByType,
     employeesByDept,
-  } = useReportData();
+    pendingVacations,
+    pendingRequests,
+  } = useReportData({ enabled: canView });
 
   useEffect(() => {
     if (!authLoading && !hasAppPermission("VIEW_REPORTS")) router.push("/");
   }, [authLoading, hasAppPermission, router]);
 
-  if (authLoading) return null;
+  if (authLoading) {
+    return (
+      <div>
+        <PageHeader
+          title="Relatórios"
+          description="Visão analítica dos dados do Sistema"
+        />
+        <div className="grid gap-4 mt-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (hasError) {
     return (
@@ -99,11 +116,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{vacations.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {
-                    vacations.filter((v) => v.STATUS_FERIAS === "PENDENTE")
-                      .length
-                  }{" "}
-                  pendentes
+                  {pendingVacations} pendentes
                 </p>
               </CardContent>
             </Card>
@@ -116,8 +129,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{requests.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {requests.filter((r) => r.STATUS === "PENDENTE").length}{" "}
-                  pendentes
+                  {pendingRequests} pendentes
                 </p>
               </CardContent>
             </Card>
@@ -180,9 +192,9 @@ export default function ReportsPage() {
                     <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                     <Tooltip />
                     <Bar dataKey="total" radius={[4, 4, 0, 0]}>
-                      {requestsByType.map((_, i) => (
+                      {requestsByType.map((entry, i) => (
                         <Cell
-                          key={`req-${i}`}
+                          key={`req-${entry.name}`}
                           fill={COLORS[i % COLORS.length]}
                         />
                       ))}
