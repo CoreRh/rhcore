@@ -30,7 +30,8 @@ import {
   dashboardApi,
 } from "@/lib/api";
 import { useAuth } from "@/contexts/auth-context";
-import { RecentActivity } from "@/lib/types";
+import type { RecentActivity } from "@/lib/types";
+
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -172,7 +173,7 @@ function PendingVacationsCard({
   vacations,
   isLoading,
 }: {
-  vacations: { name: string; dates: string; days: number }[];
+  vacations: { id: string; name: string; dates: string; days: number }[];
   isLoading: boolean;
 }) {
   return (
@@ -196,8 +197,11 @@ function PendingVacationsCard({
           </div>
         ) : vacations.length > 0 ? (
           <div className="space-y-3">
-            {vacations.map((vacation, i) => (
-              <div key={i} className="flex items-center justify-between">
+            {vacations.map((vacation) => (
+              <div
+                key={vacation.id}
+                className="flex items-center justify-between"
+              >
                 <div>
                   <p className="text-sm font-medium">{vacation.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -305,6 +309,7 @@ export default function DashboardPage() {
   );
 
   const pendingVacationsList = pendingVacations.slice(0, 5).map((v) => ({
+    id: v.ID,
     name: v.FUNCIONARIO?.NOME || "Funcionário",
     dates: `${new Date(v.DATA_INICIO).toLocaleDateString("pt-BR")} - ${new Date(v.DATA_FIM).toLocaleDateString("pt-BR")}`,
     days: v.DIAS_SOLICITADOS,
