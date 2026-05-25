@@ -205,7 +205,7 @@ function PendingVacationsCard({
                 <div>
                   <p className="text-sm font-medium">{vacation.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {vacation.dates}
+                    {vacation.dates} · {vacation.days} dias
                   </p>
                 </div>
                 <StatusBadge status="PENDENTE" />
