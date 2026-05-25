@@ -81,8 +81,8 @@ function StatCardSkeleton() {
 }
 
 interface RecentActivityItem {
-  id: number;
-  type: "employee" | "vacation" | "request";
+  id: string;
+  type: "FUNCIONARIO" | "FERIAS" | "SOLICITACAO";
   title: string;
   description: string;
   timestamp: string;
@@ -98,11 +98,11 @@ function RecentActivityCard({
 }) {
   const getIcon = (type: string) => {
     switch (type) {
-      case "employee":
+      case "FUNCIONARIO":
         return <UserPlus className="h-4 w-4" />;
-      case "vacation":
+      case "FERIAS":
         return <Palmtree className="h-4 w-4" />;
-      case "request":
+      case "SOLICITACAO":
         return <FileText className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -289,11 +289,12 @@ export default function DashboardPage() {
 
   const recentActivity: RecentActivityItem[] = (activityData?.data ?? []).map(
     (item) => ({
-      id: item.id,
-      type: item.type,
-      title: item.description,
-      description: "",
-      timestamp: new Date(item.timestamp).toLocaleString("pt-BR"),
+      id: item.ID,
+      type: item.TIPO,
+      title: item.TITULO,
+      description: item.DESCRICAO,
+      status: item.STATUS,
+      timestamp: new Date(item.CRIADO_EM).toLocaleString("pt-BR"),
     }),
   );
 

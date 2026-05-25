@@ -261,10 +261,19 @@ export interface DashboardSummary {
 }
 
 export interface RecentActivity {
-  id: number;
-  type: "employee" | "vacation" | "request";
-  description: string;
-  timestamp: string;
+  ID: string;
+  TIPO: "FUNCIONARIO" | "FERIAS" | "SOLICITACAO";
+  TITULO: string;
+  DESCRICAO: string;
+  STATUS:
+    | "ATIVO"
+    | "INATIVO"
+    | "EXCLUIDO"
+    | "PENDENTE"
+    | "APROVADO"
+    | "REJEITADO"
+    | "CANCELADO";
+  CRIADO_EM: string;
 }
 
 export type PayrollStatus = "PENDENTE" | "PROCESSADO" | "PAGO";
