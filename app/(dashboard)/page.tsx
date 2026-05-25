@@ -30,6 +30,7 @@ import {
   dashboardApi,
 } from "@/lib/api";
 import { useAuth } from "@/contexts/auth-context";
+import { RecentActivity } from "@/lib/types";
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -86,7 +87,7 @@ interface RecentActivityItem {
   title: string;
   description: string;
   timestamp: string;
-  status?: string;
+  status?: RecentActivity["STATUS"];
 }
 
 function RecentActivityCard({
@@ -96,7 +97,7 @@ function RecentActivityCard({
   activities: RecentActivityItem[];
   isLoading: boolean;
 }) {
-  const getIcon = (type: string) => {
+  const getIcon = (type: RecentActivityItem["type"]) => {
     switch (type) {
       case "FUNCIONARIO":
         return <UserPlus className="h-4 w-4" />;
@@ -119,7 +120,10 @@ function RecentActivityCard({
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-4">
+              <div
+                key={`skeleton-activity-${i}`}
+                className="flex items-start gap-4"
+              >
                 <Skeleton className="h-9 w-9 rounded-full" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-3/4" />
@@ -294,7 +298,9 @@ export default function DashboardPage() {
       title: item.TITULO,
       description: item.DESCRICAO,
       status: item.STATUS,
-      timestamp: new Date(item.CRIADO_EM).toLocaleString("pt-BR"),
+      timestamp: item.CRIADO_EM
+        ? new Date(item.CRIADO_EM).toLocaleString("pt-BR")
+        : "-",
     }),
   );
 
