@@ -10,9 +10,12 @@ Se nenhum PR for informado, execute `gh pr list` e pergunte ao usuário qual rev
 ### CONTEXTO FIXO DO PROJETO
 
 - **Linguagem:** TypeScript
-- **Framework:** Next.js (App Router) + React
-- **Estilo:** Tailwind CSS
-- **Testes:** Cypress (E2E)
+- **Framework:** Next.js 16 (App Router) + React 19
+- **Estilo:** Tailwind CSS v4 + shadcn/ui (Radix UI)
+- **Formulários:** react-hook-form + zod
+- **Data fetching:** TanStack Query v5
+- **Tabelas:** TanStack Table
+- **Testes:** Nenhum framework configurado (avaliar ausência de cobertura como ponto de atenção)
 - **Convenções de nomenclatura:** PascalCase para componentes/tipos, camelCase para variáveis/funções/hooks, kebab-case para arquivos de componente
 
 ---
@@ -52,7 +55,9 @@ Analise o diff no contexto do projeto. Se precisar de mais contexto sobre um arq
 - ✓ **DRY:** lógica reutilizável extraída em hooks ou utilitários
 - ✓ **Keys em listas:** únicas e estáveis (nunca index como key em listas dinâmicas)
 - ✓ **Sem side effects no render:** toda lógica assíncrona em `useEffect` ou Server Components
-- ✓ **Formulários:** controlled components ou React Hook Form com validação
+- ✓ **Formulários:** react-hook-form com validação via zod (`useForm` + `zodResolver`)
+- ✓ **Data fetching:** TanStack Query para estado server-side (sem `useEffect` + `fetch` manual)
+- ✓ **shadcn/ui:** componentes usados diretamente do `@/components/ui`, sem reescrever primitivos Radix
 
 #### 4️⃣ QUALIDADE DE CÓDIGO
 
@@ -94,12 +99,11 @@ Analise o diff no contexto do projeto. Se precisar de mais contexto sobre um arq
 - ✓ Foco visível em elementos interativos (`focus-visible:`)
 - ✓ Semântica HTML correta (`button` para ações, `a` para navegação)
 
-#### 9️⃣ TESTES (Cypress)
+#### 9️⃣ TESTES
 
-- ✓ Seletores por `data-testid` (não classes CSS ou texto que pode mudar)
-- ✓ Fluxos principais cobertos (happy path + erros)
-- ✓ Sem `cy.wait()` com tempo fixo — usar `cy.intercept()` ou assertions
-- ✓ Interceptação de requisições de API para controlar estado
+- ⚠️ Projeto sem framework de testes configurado — identificar se o PR introduz lógica crítica sem cobertura
+- ✓ Se houver testes: seletores estáveis (`data-testid`), fluxos principais e de erro cobertos
+- ✓ Sugerir adição de testes quando a mudança envolve regras de negócio ou formulários complexos
 
 #### 🔟 REGRESSÕES
 
@@ -157,3 +161,15 @@ Analise o diff no contexto do projeto. Se precisar de mais contexto sobre um arq
 - **Melhorias sugeridas:** [número]
 - **Esforço de correção:** 🟢 Baixo / 🟡 Médio / 🔴 Alto
 - **Prioridade:** 🟢 Opcional / 🟡 Recomendado / 🔴 Obrigatório
+
+---
+
+## 📋 MARKDOWN PARA COLAR NO GITHUB
+
+Após exibir o review acima, repita **todo o conteúdo do review** (do `## 📌 VISÃO GERAL DO PR` até o fim do `## 📊 RESUMO EXECUTIVO`) dentro de um único bloco de código com a linguagem `markdown`, assim:
+
+```markdown
+[conteúdo completo do review aqui]
+```
+
+Isso permite que o usuário copie o bloco e cole diretamente no campo de comentário do GitHub PR.
