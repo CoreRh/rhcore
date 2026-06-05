@@ -30,6 +30,8 @@ import {
   dashboardApi,
 } from "@/lib/api";
 import { useAuth } from "@/contexts/auth-context";
+import type { RecentActivity } from "@/lib/types";
+
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -81,12 +83,12 @@ function StatCardSkeleton() {
 }
 
 interface RecentActivityItem {
-  id: number;
-  type: "employee" | "vacation" | "request";
+  id: string;
+  type: "FUNCIONARIO" | "FERIAS" | "SOLICITACAO";
   title: string;
   description: string;
   timestamp: string;
-  status?: string;
+  status?: RecentActivity["STATUS"];
 }
 
 function RecentActivityCard({
@@ -96,13 +98,13 @@ function RecentActivityCard({
   activities: RecentActivityItem[];
   isLoading: boolean;
 }) {
-  const getIcon = (type: string) => {
+  const getIcon = (type: RecentActivityItem["type"]) => {
     switch (type) {
-      case "employee":
+      case "FUNCIONARIO":
         return <UserPlus className="h-4 w-4" />;
-      case "vacation":
+      case "FERIAS":
         return <Palmtree className="h-4 w-4" />;
-      case "request":
+      case "SOLICITACAO":
         return <FileText className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -119,7 +121,10 @@ function RecentActivityCard({
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-4">
+              <div
+                key={`skeleton-activity-${i}`}
+                className="flex items-start gap-4"
+              >
                 <Skeleton className="h-9 w-9 rounded-full" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-3/4" />
@@ -168,7 +173,7 @@ function PendingVacationsCard({
   vacations,
   isLoading,
 }: {
-  vacations: { name: string; dates: string; days: number }[];
+  vacations: { id: string; name: string; dates: string; days: number }[];
   isLoading: boolean;
 }) {
   return (
@@ -192,12 +197,15 @@ function PendingVacationsCard({
           </div>
         ) : vacations.length > 0 ? (
           <div className="space-y-3">
-            {vacations.map((vacation, i) => (
-              <div key={i} className="flex items-center justify-between">
+            {vacations.map((vacation) => (
+              <div
+                key={vacation.id}
+                className="flex items-center justify-between"
+              >
                 <div>
                   <p className="text-sm font-medium">{vacation.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {vacation.dates}
+                    {vacation.dates} · {vacation.days} dias
                   </p>
                 </div>
                 <StatusBadge status="PENDENTE" />
@@ -289,15 +297,19 @@ export default function DashboardPage() {
 
   const recentActivity: RecentActivityItem[] = (activityData?.data ?? []).map(
     (item) => ({
-      id: item.id,
-      type: item.type,
-      title: item.description,
-      description: "",
-      timestamp: new Date(item.timestamp).toLocaleString("pt-BR"),
+      id: item.ID,
+      type: item.TIPO,
+      title: item.TITULO,
+      description: item.DESCRICAO,
+      status: item.STATUS,
+      timestamp: item.CRIADO_EM
+        ? new Date(item.CRIADO_EM).toLocaleString("pt-BR")
+        : "-",
     }),
   );
 
   const pendingVacationsList = pendingVacations.slice(0, 5).map((v) => ({
+    id: v.ID,
     name: v.FUNCIONARIO?.NOME || "Funcionário",
     dates: `${new Date(v.DATA_INICIO).toLocaleDateString("pt-BR")} - ${new Date(v.DATA_FIM).toLocaleDateString("pt-BR")}`,
     days: v.DIAS_SOLICITADOS,
