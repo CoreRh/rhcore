@@ -125,7 +125,8 @@ export function PayrollForm({
 }: PayrollFormProps) {
   const [inssOverride, setInssOverride] = useState(false);
   const [irrfOverride, setIrrfOverride] = useState(false);
-  const isFirstRender = useRef(true);
+  const isFirstInssRender = useRef(true);
+  const isFirstIrrfRender = useRef(true);
 
   const { data: employeesData } = useQuery({
     queryKey: ["employees"],
@@ -139,7 +140,6 @@ export function PayrollForm({
     register,
     handleSubmit,
     setValue,
-    getValues,
     control,
     formState: { errors },
   } = useForm<PayrollFormData>({
@@ -171,26 +171,31 @@ export function PayrollForm({
   const valorPassagem = useWatch({ control, name: "VALOR_PASSAGEM" });
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (isFirstInssRender.current) {
+      isFirstInssRender.current = false;
       return;
     }
+    if (inssOverride) return;
 
-    const base = Number(salarioBase) || 0;
-    const deps = Number(numDependentes) || 0;
+    setValue("DESCONTO_INSS", calcINSS(Number(salarioBase) || 0));
+  }, [salarioBase, inssOverride, setValue]);
 
-    let inssValue = Number(getValues("DESCONTO_INSS")) || 0;
-
-    if (!inssOverride) {
-      inssValue = calcINSS(base);
-      setValue("DESCONTO_INSS", inssValue);
+  useEffect(() => {
+    if (isFirstIrrfRender.current) {
+      isFirstIrrfRender.current = false;
+      return;
     }
+    if (irrfOverride) return;
 
-    if (!irrfOverride) {
-      const irrf = calcIRRF(base, inssValue, deps);
-      setValue("DESCONTO_IRRF", irrf);
-    }
-  }, [salarioBase, numDependentes]);
+    setValue(
+      "DESCONTO_IRRF",
+      calcIRRF(
+        Number(salarioBase) || 0,
+        Number(descontoInss) || 0,
+        Number(numDependentes) || 0,
+      ),
+    );
+  }, [salarioBase, descontoInss, numDependentes, irrfOverride, setValue]);
 
   const descontoVTPreview = Math.min(
     Number(valorPassagem) || 0,
