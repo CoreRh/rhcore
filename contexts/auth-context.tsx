@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi, setTokens } from "@/lib/api";
 import type {
   User,
@@ -16,6 +10,8 @@ import type {
   UserRole,
   AppPermission,
 } from "@/lib/types";
+
+const AUTH_QUERY_KEY = ["auth", "me"] as const;
 
 interface AuthContextType {
   user: User | null;
@@ -29,9 +25,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data: user = null, isPending: isLoading } = useQuery({
+    queryKey: AUTH_QUERY_KEY,
+    queryFn: async (): Promise<User | null> => {
+      try {
+        const response = await authApi.getCurrentUser();
+        return response.data;
+      } catch {
+        // token ausente/inválido: descarta o que estiver no storage
+        setTokens(null);
+        return null;
+      }
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
 
   const hasAppPermission = useCallback(
     (permission: AppPermission): boolean => {
@@ -42,32 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await authApi.getCurrentUser();
-      setUser(response.data);
-    } catch {
-      setUser(null);
-      setTokens(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const login = async (credentials: LoginCredentials) => {
     await authApi.login(credentials);
     const userResponse = await authApi.getCurrentUser();
-    setUser(userResponse.data);
+    queryClient.setQueryData(AUTH_QUERY_KEY, userResponse.data);
     router.push("/");
   };
 
   const logout = async () => {
     await authApi.logout();
-    setUser(null);
+    // descarta o cache do usuário anterior antes de liberar a tela de login
+    queryClient.clear();
+    queryClient.setQueryData(AUTH_QUERY_KEY, null);
     router.push("/login");
   };
 
