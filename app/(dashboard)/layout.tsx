@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
 import { Spinner } from "@/components/ui/spinner";
 import { hasRouteAccess } from "@/lib/permissions";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, role, user } = useAuth();
@@ -40,6 +41,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <TopBar />
         <main className="flex-1 p-6">{children}</main>
+        <ChatWidget />
       </SidebarInset>
     </SidebarProvider>
   );
