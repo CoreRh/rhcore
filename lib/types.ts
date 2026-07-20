@@ -406,3 +406,7 @@ export interface UpdateBenefitData {
   STATUS_BENEFICIO?: BenefitsStatus;
   METADADOS?: BenefitMetadata;
 }
+
+export interface ChatResponse {
+  RESPOSTA: string;
+}
