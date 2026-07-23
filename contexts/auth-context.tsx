@@ -61,11 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await authApi.logout();
-    // descarta o cache do usuário anterior antes de liberar a tela de login
-    queryClient.clear();
-    queryClient.setQueryData(AUTH_QUERY_KEY, null);
-    router.push("/login");
+    try {
+      await authApi.logout();
+    } finally {
+      queryClient.clear();
+      queryClient.setQueryData(AUTH_QUERY_KEY, null);
+      router.push("/login");
+    }
   };
 
   return (
