@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <TopBar />
         <main className="flex-1 p-6">{children}</main>
-        <ChatWidget />
+        <ChatWidget key={user?.ID} />
       </SidebarInset>
     </SidebarProvider>
   );
