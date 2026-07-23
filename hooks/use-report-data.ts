@@ -70,10 +70,10 @@ export function useReportData({ enabled = true }: { enabled?: boolean } = {}) {
   const isLoading = empLoading || vacLoading || reqLoading || deptLoading;
   const hasError = empError || vacError || reqError || deptError;
 
-  const employees = empData?.data ?? [];
-  const vacations = vacData?.data ?? [];
-  const requests = reqData?.data ?? [];
-  const departments = deptData?.data ?? [];
+  const employees = useMemo(() => empData?.data ?? [], [empData]);
+  const vacations = useMemo(() => vacData?.data ?? [], [vacData]);
+  const requests = useMemo(() => reqData?.data ?? [], [reqData]);
+  const departments = useMemo(() => deptData?.data ?? [], [deptData]);
 
   const { activeEmployees, inactiveEmployees } = useMemo(
     () =>

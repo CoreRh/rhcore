@@ -28,8 +28,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { title } from "process";
-import { url } from "inspector";
+
 const mainNavItems = [
   {
     title: "Dashboard",

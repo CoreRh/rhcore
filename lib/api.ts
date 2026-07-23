@@ -29,6 +29,7 @@ import type {
   Benefit,
   CreateBenefitData,
   UpdateBenefitData,
+  ChatResponse,
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -498,6 +499,15 @@ export const benefitsApi = {
   delete: async (id: string): Promise<ApiResponse<void>> => {
     return apiRequest<ApiResponse<void>>(`/benefits/${id}`, {
       method: "DELETE",
+    });
+  },
+};
+
+export const chatApi = {
+  send: async (mensagem: string): Promise<ApiResponse<ChatResponse>> => {
+    return apiRequest<ApiResponse<ChatResponse>>("/chat", {
+      method: "POST",
+      body: JSON.stringify({ MENSAGEM: mensagem }),
     });
   },
 };

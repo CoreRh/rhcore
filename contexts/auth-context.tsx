@@ -1,21 +1,17 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { authApi, setTokens } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { authApi, setTokens, getAccessToken } from "@/lib/api";
 import type {
   User,
   LoginCredentials,
   UserRole,
   AppPermission,
 } from "@/lib/types";
+
+const AUTH_QUERY_KEY = ["auth", "me"] as const;
 
 interface AuthContextType {
   user: User | null;
@@ -29,9 +25,35 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data: user = null, isPending: isLoading } = useQuery({
+    queryKey: AUTH_QUERY_KEY,
+    queryFn: async (): Promise<User | null> => {
+      if (!getAccessToken()) return null;
+
+      try {
+        const response = await authApi.getCurrentUser();
+        return response.data;
+      } catch (error) {
+        const statusCode = (error as { statusCode?: number })?.statusCode;
+
+        if (statusCode === 401) {
+          setTokens(null);
+          return null;
+        }
+        throw error;
+      }
+    },
+    staleTime: Infinity,
+    retry: (failureCount, error) => {
+      const statusCode = (error as { statusCode?: number })?.statusCode;
+      if (statusCode === 401) return false;
+      return failureCount < 2;
+    },
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
+  });
 
   const hasAppPermission = useCallback(
     (permission: AppPermission): boolean => {
@@ -42,33 +64,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await authApi.getCurrentUser();
-      setUser(response.data);
-    } catch {
-      setUser(null);
-      setTokens(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const login = async (credentials: LoginCredentials) => {
     await authApi.login(credentials);
     const userResponse = await authApi.getCurrentUser();
-    setUser(userResponse.data);
+    queryClient.setQueryData(AUTH_QUERY_KEY, userResponse.data);
     router.push("/");
   };
 
   const logout = async () => {
-    await authApi.logout();
-    setUser(null);
-    router.push("/login");
+    try {
+      await authApi.logout();
+    } finally {
+      queryClient.clear();
+      queryClient.setQueryData(AUTH_QUERY_KEY, null);
+      router.push("/login");
+    }
   };
 
   return (
