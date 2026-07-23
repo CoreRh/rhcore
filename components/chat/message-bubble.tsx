@@ -18,7 +18,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Bot className="h-4 w-4"></Bot>
+          <Bot className="h-4 w-4" />
         </div>
       )}
 

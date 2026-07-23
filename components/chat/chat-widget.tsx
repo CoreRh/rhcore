@@ -1,14 +1,16 @@
+"use client";
+
 import { useAuth } from "@/contexts/auth-context";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "./message-bubble";
 import { chatApi } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import { MessageBubble } from "@/components/chat/message-bubble";
 import { Bot, MessageSquare, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { MessageBubble } from "@/components/chat/message-bubble";
-import { Textarea } from "../ui/textarea";
 
 const MAX_CHARS = 2000;
 
@@ -19,14 +21,14 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    });
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [isOpen]);
 
   const sendMutation = useMutation({
     mutationFn: (mensagem: string) => chatApi.send(mensagem),
@@ -39,7 +41,6 @@ export function ChatWidget() {
           content: response.data.RESPOSTA,
         },
       ]);
-      scrollToBottom();
     },
     onError: (error: { statusCode?: number; message?: string }) => {
       if (error.statusCode === 401) {
@@ -50,6 +51,13 @@ export function ChatWidget() {
       toast.error(error.message ?? "Não foi possível enviar a mensagem.");
     },
   });
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, sendMutation.isPending, isOpen]);
 
   const trimmed = input.trim();
   const isOverLimit = input.length > MAX_CHARS;
@@ -63,7 +71,6 @@ export function ChatWidget() {
     ]);
     sendMutation.mutate(trimmed);
     setInput("");
-    scrollToBottom();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -78,6 +85,11 @@ export function ChatWidget() {
       {/* Painel do chat — empilhado logo acima do botão */}
       {isOpen && (
         <div
+          role="dialog"
+          aria-label="Assistente de RH"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setIsOpen(false);
+          }}
           className={cn(
             "flex flex-col overflow-hidden",
             "h-[min(600px,calc(100vh-10rem))] w-[min(400px,calc(100vw-3rem))]",
@@ -96,7 +108,12 @@ export function ChatWidget() {
           </div>
 
           {/* Mensagens */}
-          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+          <div
+            ref={scrollRef}
+            aria-live="polite"
+            aria-atomic="false"
+            className="flex-1 space-y-4 overflow-y-auto p-4"
+          >
             {messages.length === 0 && !sendMutation.isPending ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                 <Bot className="h-8 w-8" />
@@ -134,6 +151,7 @@ export function ChatWidget() {
                 rows={1}
                 className="max-h-32 min-h-11 resize-none"
                 aria-invalid={isOverLimit}
+                aria-describedby={isOverLimit ? "chat-input-error" : undefined}
               />
               <Button
                 onClick={handleSend}
@@ -145,10 +163,19 @@ export function ChatWidget() {
                 <span className="sr-only">Enviar</span>
               </Button>
             </div>
-            <div className="flex justify-end px-1">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <p
+                id="chat-input-error"
+                role="alert"
+                className="text-xs text-destructive"
+              >
+                {isOverLimit
+                  ? `Máximo de ${MAX_CHARS} caracteres. Remova ${input.length - MAX_CHARS}.`
+                  : null}
+              </p>
               <span
                 className={cn(
-                  "text-xs",
+                  "shrink-0 text-xs",
                   isOverLimit ? "text-destructive" : "text-muted-foreground",
                 )}
               >
