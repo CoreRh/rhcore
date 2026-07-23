@@ -20,6 +20,13 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isOpen) inputRef.current?.focus();
+    else triggerRef.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,21 +89,16 @@ export function ChatWidget() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      {/* Painel do chat — empilhado logo acima do botão */}
       {isOpen && (
         <div
           role="dialog"
           aria-label="Assistente de RH"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setIsOpen(false);
-          }}
           className={cn(
             "flex flex-col overflow-hidden",
             "h-[min(600px,calc(100vh-10rem))] w-[min(400px,calc(100vw-3rem))]",
             "rounded-lg border bg-card shadow-xl",
           )}
         >
-          {/* Cabeçalho */}
           <div className="flex items-center gap-2 border-b px-4 py-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Bot className="h-4 w-4" />
@@ -107,10 +109,8 @@ export function ChatWidget() {
             </div>
           </div>
 
-          {/* Mensagens */}
           <div
             ref={scrollRef}
-            aria-live="polite"
             aria-atomic="false"
             className="flex-1 space-y-4 overflow-y-auto p-4"
           >
@@ -125,7 +125,6 @@ export function ChatWidget() {
               ))
             )}
 
-            {/* Indicador de digitando */}
             {sendMutation.isPending && (
               <div className="flex gap-3 justify-start">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -140,7 +139,6 @@ export function ChatWidget() {
             )}
           </div>
 
-          {/* Input */}
           <div className="space-y-1 border-t p-3">
             <div className="flex items-end gap-2">
               <Textarea
@@ -186,7 +184,6 @@ export function ChatWidget() {
         </div>
       )}
 
-      {/* Botão flutuante — sempre logo abaixo do painel */}
       <Button
         onClick={() => setIsOpen((v) => !v)}
         size="icon"
