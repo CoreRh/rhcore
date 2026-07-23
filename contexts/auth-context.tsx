@@ -3,7 +3,7 @@
 import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { authApi, setTokens } from "@/lib/api";
+import { authApi, setTokens, getAccessToken } from "@/lib/api";
 import type {
   User,
   LoginCredentials,
@@ -31,17 +31,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user = null, isPending: isLoading } = useQuery({
     queryKey: AUTH_QUERY_KEY,
     queryFn: async (): Promise<User | null> => {
+      if (!getAccessToken()) return null;
+
       try {
         const response = await authApi.getCurrentUser();
         return response.data;
-      } catch {
-        // token ausente/inválido: descarta o que estiver no storage
-        setTokens(null);
-        return null;
+      } catch (error) {
+        const statusCode = (error as { statusCode?: number })?.statusCode;
+
+        if (statusCode === 401) {
+          setTokens(null);
+          return null;
+        }
+        throw error;
       }
     },
     staleTime: Infinity,
-    retry: false,
+    retry: (failureCount, error) => {
+      const statusCode = (error as { statusCode?: number })?.statusCode;
+      if (statusCode === 401) return false;
+      return failureCount < 2;
+    },
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 
   const hasAppPermission = useCallback(
