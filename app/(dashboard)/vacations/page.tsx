@@ -31,7 +31,6 @@ import {
   type Vacation,
   type CreateVacationData,
   type UpdateVacationData,
-  type VacationStatus,
   VACATION_STATUS,
   VACATION_STATUS_LABELS,
 } from "@/lib/types";
@@ -247,7 +246,7 @@ export default function VacationsPage() {
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-10 w-full max-w-sm" />
-          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-100 w-full" />
         </div>
       ) : isError ? (
         <p className="text-sm text-destructive">
