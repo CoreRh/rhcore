@@ -22,10 +22,12 @@ export function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
     if (isOpen) inputRef.current?.focus();
-    else triggerRef.current?.focus();
+    else if (wasOpen.current) triggerRef.current?.focus();
+    wasOpen.current = isOpen;
   }, [isOpen]);
 
   useEffect(() => {
@@ -109,11 +111,7 @@ export function ChatWidget() {
             </div>
           </div>
 
-          <div
-            ref={scrollRef}
-            aria-atomic="false"
-            className="flex-1 space-y-4 overflow-y-auto p-4"
-          >
+          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 && !sendMutation.isPending ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                 <Bot className="h-8 w-8" />
@@ -139,9 +137,16 @@ export function ChatWidget() {
             )}
           </div>
 
+          <div aria-live="polite" className="sr-only">
+            {messages.at(-1)?.role === "assistant"
+              ? messages.at(-1)?.content
+              : ""}
+          </div>
+
           <div className="space-y-1 border-t p-3">
             <div className="flex items-end gap-2">
               <Textarea
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -185,6 +190,7 @@ export function ChatWidget() {
       )}
 
       <Button
+        ref={triggerRef}
         onClick={() => setIsOpen((v) => !v)}
         size="icon"
         className="h-14 w-14 rounded-full shadow-lg"
